@@ -1,0 +1,42 @@
+name: 'Updates AKS Service with new image'
+description: 'This action logins in AKS and updates the image in a AKS Deployment'
+inputs:
+  azure_credentials:
+    description: 'Azure credentials'
+    required: true
+  resource_group:
+    description: 'Azure Resource Group'
+    required: true
+  cluster_name:
+    description: 'AKS Cluster Name'
+    required: true
+  deployment_name:
+    description: 'Deployment Name'
+    required: true
+  container_name:
+    description: 'Container Name'
+    required: true
+  image_name:
+    description: 'Container Image Name with version'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+            creds: ${{inputs.azure_credentials}}
+
+      - name: Gets K8s context
+        uses: azure/aks-set-context@v1
+        with:
+            creds: ${{inputs.azure_credentials}}
+            resource-group: ${{inputs.resource_group}}
+            cluster-name: ${{inputs.cluster_name}}
+        id: login
+
+      - name: Update Azure Workload/Deployment
+        run: kubectl set image deployment/${{inputs.deployment_name}} ${{inputs.container_name}}=${{inputs.image_name}}
+
+  
